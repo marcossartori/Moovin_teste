@@ -16,6 +16,6 @@ class Exemplo
      */
     public function exemplo()
     {
-        return "Exemplo";
+        return "Esta funcionando";
     }
 }

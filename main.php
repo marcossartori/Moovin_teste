@@ -2,8 +2,10 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+
 use Moovin\Job\Backend;
 
-$exemplo = new Backend\Exemplo;
+$contas = new Backend\Contas();
 
-echo $exemplo->exemplo();
+print_r($conta= $contas->buscarConta('001'));
+ 
