@@ -11,20 +11,35 @@ namespace Moovin\Job\Backend;
  class Contas{
 
      private $data;
-	 private $taxa_C_corrennte="2.50";
-	 private $taxa_C_poupanca="0.80";
-	 private $limite_Corrente="600.00";
-	 private $limite_Poupanca="1000.00";
+	 private $taxa_C_corrennte=2.50;
+	 private $taxa_C_poupanca= 0.80;
+	 private $limite_Corrente= 600.00;
+	 private $limite_Poupanca= 1000.00;
+	 private $databasename="caixa.json";
+	 public  $mensagem;
+
 	 
 
 
      public function __construct()
      {
-		 
-         $jsonString = file_get_contents('caixa.json');
+		 $jsonString = file_get_contents($this->databasename); 
          $this->data = json_decode($jsonString, true);
-
+		 
+		 
      }
+	 
+	 function getData(){
+		 
+		 return $this->data;
+	 }
+	 
+	 
+	 function getMensagem(){
+		 
+		 return $this->mensagem;
+	 }
+	 
 	 
 	function definirTaxas($data)
 	{
@@ -60,9 +75,7 @@ namespace Moovin\Job\Backend;
 				  
 			  {
                  return  $this->data[$key];
-				 //echo  "Numero da conta:".$this->data[$key]['numero']."<br>";
-				// echo  "Tipo de conta:".$this->data[$key]['tipo']."<br>";
-				 //echo  "Saldo:".$this->data[$key]['saldo'];
+				
               }
 
 
@@ -78,11 +91,19 @@ namespace Moovin\Job\Backend;
           if ($value['numero'] == $numero)
 		  {
 		      $this->data[$key]['saldo'] = ($this->data[$key]['saldo']+ $valor);
+			  $newJsonString = json_encode($this->data);
+              file_put_contents($this->databasename, $newJsonString);
+			  $this->mensagem= " Deposito feito com sucesso";
+			  break;
           }
+		  else
+		  {
+			 $this->mensagem= "Nao foi possivel completar a transação! Favor verificar numero da  Conta ";
+		  }
+		  
        }
-	 $newJsonString = json_encode($this->data);
-     file_put_contents($this->database, $newJsonString);
-     return  $this->buscarConta($numero);
+	   
+	    echo  $this->getMensagem();
         		
 	 }
 	 
@@ -94,20 +115,22 @@ namespace Moovin\Job\Backend;
 	   {
           if ($value['numero'] == $numero)
 		  {
-		    $saldo=$this->definirTaxas($this->data[$key]); 
-            $limite=$this->definirLimite($this->data[$key]);
+		    $saldo=$this->definirTaxas($this->data[$key]);  // verifica o tipo de  conta e aplica as taxa
+            $limite=$this->definirLimite($this->data[$key]); // verifica o tipo de  conta e aplica e retorna o limite
 			
-			if($valor <= $saldo and $valor <= $limite)
+			if($valor <= $saldo and $valor <=  $limite)
             {				
              $this->data[$key]['saldo']= $saldo - $valor;
 			 $newJsonString = json_encode($this->data);
-             file_put_contents($this->database, $newJsonString);
-            }
-			else{ return "Saldo insuficiente ou limite de saque exedido";}
+             file_put_contents($this->databasename, $newJsonString);
+			 $this->mensagem="Saque feito com sucesso!";
+			 break;
+			 }
+			else{ $this->mensagem="Saldo insuficiente ou limite de saque exedido "; }
 		  }
        }
 	 
-     return  $this->buscarConta($numero);
+     echo $this->mensagem;
         		
 	 }
 	 
@@ -117,7 +140,7 @@ namespace Moovin\Job\Backend;
 	   $data_sacador=$this->buscarConta($sacador);
 
          if($valor <= $data_sacado['saldo'] )
-        {
+         {
 			 $data_sacador['saldo']= $data_sacador['saldo'] + $valor;
 			 $data_sacado['saldo']= $data_sacado['saldo']-$valor;
 			 
@@ -133,16 +156,18 @@ namespace Moovin\Job\Backend;
 				 }
 						 
 		     }
-        			 
-		}			 
+        	   $newJsonString = json_encode($this->data);
+               file_put_contents($this->databasename, $newJsonString);
+               $this->mensagem = "transferencia feita com sucesso";			   
+		 
+		 }			 
        	 else
-		{
-			return "Saldo insuficiente!";	 
-		} 
+		 {
+			$this->mensagem = "Saldo  insuficiente";
+		 } 
 		
-		$newJsonString = json_encode($this->data);
-        file_put_contents($this->database, $newJsonString);
-	 }
+		 echo $this->mensagem;
+	}
  }
 
 
